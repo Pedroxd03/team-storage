@@ -1,0 +1,31 @@
+import cv2
+import numpy as np
+
+def detectar_brillo():
+    # Iniciar la cámara
+    cap = cv2.VideoCapture(0)  
+    ret, frame = cap.read()  # Capturar un frame
+    cap.release()  # Liberar la cámara
+
+    if not ret:
+        print("❌ Error al acceder a la cámara.")
+        return
+    
+    # Convertir la imagen a escala de grises
+    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    
+    # Calcular brillo promedio
+    brillo = np.mean(gray)
+    
+    # Decidir modo
+    if brillo < 100:
+        print("🌙 Modo oscuro recomendado")
+    else:
+        print("☀️ Sigue con el modo claro")
+    
+    # Mostrar la imagen
+    cv2.imshow("Imagen capturada", frame)
+    cv2.waitKey(3000)  # Mostrar por 3 segundos
+    cv2.destroyAllWindows()
+
+detectar_brillo()
