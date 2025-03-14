@@ -1,0 +1,73 @@
+import os
+import matplotlib.pyplot as plt
+import pandas as pd
+
+def main():
+    # Obtener la ruta del directorio del script
+    script_path = os.path.dirname(os.path.abspath(__file__))
+
+    # Obtener la lista de archivos CSV en el directorio
+    csv_files = [f for f in os.listdir(script_path) if f.endswith("battery_data_sustrend_bank_2023-11-14_11-32-36.csv")]
+
+    # Verificar si hay archivos CSV
+    if not csv_files:
+        print("No se encontraron archivos CSV en el directorio.")
+        return
+
+    # Seleccionar el archivo CSV más reciente según la hora de modificación
+    latest_csv = max(csv_files, key=lambda x: os.path.getmtime(os.path.join(script_path, x)))
+
+    # Especificar el archivo CSV a leer
+    absolute_csv_path = os.path.join(script_path, latest_csv)
+
+    # Leer el archivo CSV
+    data_frame = pd.read_csv(absolute_csv_path)
+
+    # Obtener el número de celdas dinámicamente
+    N_CELLS = sum("Voltage" in col for col in data_frame.columns)
+
+    # Definir colores para voltaje y corriente
+    voltage_colors = ['tab:blue', 'tab:orange', 'tab:green', 'tab:red', 'tab:purple', 'tab:brown', 'tab:pink', 'tab:gray', 'tab:olive', 'tab:cyan']
+    
+    # Inicializar la figura para trazar
+    fig, ax1 = plt.subplots(figsize=(10, 6))
+
+    # Calcular intervalos de tiempo en segundos
+    time_intervals = range(len(data_frame))
+
+    # Convertir intervalos de tiempo a horas dividiendo por 3600
+    hours = [t / 3600 for t in time_intervals]
+
+    # Graficar el voltaje para cada celda en el eje izquierdo
+    for cell_number in range(1, N_CELLS + 1):
+        voltage_column = f"Cell {cell_number} Voltage"
+        ax1.plot(hours, data_frame[voltage_column], label=f"{voltage_column} (V)", color=voltage_colors[cell_number - 1])
+
+    # Configurar etiquetas y título para el eje izquierdo
+    ax1.set_xlabel('Time (hours)')
+    ax1.set_ylabel('Voltage (V)')
+    ax1.set_title('Voltage vs time for each cell')
+
+    # Mover la leyenda del voltaje a la parte inferior izquierda del gráfico
+    ax1.legend(loc='lower left', bbox_to_anchor=(0, -0.3), ncol=N_CELLS)
+
+    # Graficar la corriente de cualquier celda en el eje derecho
+    current_column = f"Cell 1 Current"  # Puedes elegir cualquier celda para la corriente
+    ax2 = ax1.twinx()
+    ax2.plot(hours, data_frame[current_column], linestyle='--', label=f"{current_column} (A)", color='tab:red')
+
+    # Configurar etiquetas y título para el eje derecho
+    ax2.set_ylabel('Current (A)')
+
+    # Mover la leyenda de la corriente a la parte inferior derecha del gráfico
+    ax2.legend(loc='lower right', bbox_to_anchor=(1, -0.3))
+
+    # Ajustar diseño y guardar el gráfico como una imagen
+    plt.tight_layout()
+    plt.savefig(absolute_csv_path + "_voltage_current_plot.png")
+
+    # Mostrar el gráfico
+    plt.show()
+
+if __name__ == "__main__":
+    main()
